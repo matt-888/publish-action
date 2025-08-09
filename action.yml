@@ -1,0 +1,74 @@
+name: publish
+
+inputs:
+
+  image-name:
+    description: 'The name to use when tagging the image'
+    type: string
+    default: ${{ github.repository }}
+
+  image-tag:
+    description: 'The tag to use when tagging the image'
+    type: string
+    default: ${{ github.ref_name }}
+
+  image-plats:
+    description: 'The platforms to build the image for'
+    type: list
+    default: linux/amd64
+
+  build-args:
+    description: 'Arguments directly passed to buildah-build build-args'
+    required: false
+    default: ''
+
+  registry:
+    description: 'The URL of the registry to push the image to'
+    type: string
+    required: true
+
+  registry-username:
+    description: 'Username to use when authenticating with registry'
+    type: string
+    default: ${{ github.actor }}
+
+  registry-password:
+    description: 'Password to use when authenticating with registry'
+    type: string
+    default: ${{ github.token }}
+
+runs:
+  using: 'composite'
+  steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install qemu
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static
+
+      - name: Build Image
+        id: build
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ inputs.image-name }}
+          tags: latest ${{ inputs.image-tag }}
+          archs: ${{ inputs.image-plats }}
+          containerfiles: ./Containerfile
+          build-args: ${{ inputs.build-args }}
+
+      - name: Push to GHCR
+        id: push
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build.outputs.image }}
+          tags: latest ${{ inputs.image-tag }}
+          registry: ${{ inputs.registry }}
+          username: ${{ inputs.registry-username }}
+          password: ${{ inputs.registry-password }}
+
+      - name: Outputs
+        run: |
+          echo "${{ steps.push.outputs }}"
