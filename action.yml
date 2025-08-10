@@ -45,6 +45,7 @@ runs:
         uses: actions/checkout@v4
 
       - name: Install qemu
+        shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-user-static
@@ -70,5 +71,6 @@ runs:
           password: ${{ inputs.registry-password }}
 
       - name: Outputs
+        shell: bash
         run: |
           echo "${{ steps.push.outputs }}"
