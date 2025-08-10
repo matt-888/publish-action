@@ -12,10 +12,10 @@ inputs:
     type: string
     default: ${{ github.ref_name }}
 
-  image-plats:
-    description: 'The platforms to build the image for'
+  image-archs:
+    description: 'The architectures to build the image for'
     type: list
-    default: linux/amd64
+    default: amd64
 
   build-args:
     description: 'Arguments directly passed to buildah-build build-args'
@@ -56,7 +56,7 @@ runs:
         with:
           image: ${{ inputs.image-name }}
           tags: latest ${{ inputs.image-tag }}
-          archs: ${{ inputs.image-plats }}
+          archs: ${{ inputs.image-archs }}
           containerfiles: ./Containerfile
           build-args: ${{ inputs.build-args }}
 
